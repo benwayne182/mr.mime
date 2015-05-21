@@ -1,0 +1,127 @@
+pour determiner le workspace
+mkdir ~/fuerte_workspace/nom_du_workspace
+rosws set ~/fuerte_workspace/nom_du_workspace
+
+et surtout penser à sourcer
+source ~/fuerte_workspace/setup.bash pour "make sure that the updated ROS_PACKAGE_PATH is used"
+
+
+
+****************************************************************************************************************************
+1)Pour lancer ROS, dans un terminal:
+
+roscore
+
+****************************************************************************************************************************
+2)Deux cas se présentent:
+----------------------------------------------------------------------------------------------------------------------------
+**Simuler le robot
+
+a)Pour lancer NAOqi, ouvrir un autre terminal:
+
+~/naoqi/naoqi-sdk-1.14.5-linux32/naoqi --verbose --broker-ip 127.0.0.1
+
+b)dans un nouveau terminal
+LD_LIBRARY_PATH=~/naoqi/naoqi-sdk-1.14.5-linux32/lib:$LD_LIBRARY_PATH NAO_IP=127.0.0.1 roslaunch nao_driver nao_driver_sim.launch force_python:=true
+
+
+c)dans un nouveau terminal
+
+roslaunch nao_description nao_state_publisher.launch
+
+d)lancer dans un nouveau terminal rviz pour visualiser la simulation de robot
+
+rosrun rviz rviz
+
+
+In the top-left "Displays" window, change "Fixed Frame" to "/base_link" 
+If only the "/map" option is available, then the URDF model wasn't loaded from the previous step. 
+The "Target Frame" should be "<Fixed Frame>"
+
+Global Status should change to "OK". 
+If it's red and "error" then that probably means that the topic /joint_states is not being updated.
+
+add TF
+add robot model
+
+----------------------------------------------------------------------------------------------------------------------------
+**Etre connecté au robot, dans un nouveau terminal
+
+LD_LIBRARY_PATH=~/naoqi/naoqi-sdk-1.14.5-linux32/lib:$LD_LIBRARY_PATH NAO_IP=169.254.113.113 roslaunch nao_driver nao_driver.launch force_python:=true
+
+****************************************************************************************************************************
+3) commander NAO
+
+
+**le faire marcher dans la direction x (devant lui)
+rostopic pub -1 /cmd_vel geometry_msgs/Twist '{linear: {x: 1.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
+
+**le faire reculer dans la direction x (derriere lui)
+rostopic pub -1' /cmd_vel geometry_msgs/Twist '{linear: {x: -1.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
+
+**le faire s'arreter
+rostopic pub -1 /cmd_vel geometry_msgs/Twist '{linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}'
+
+
+
+
+****************************************************************************************************************************
+Topic statistics
+rqt_graph provides a GUI plugin for visualizing the ROS computation graph
+
+
+rosparam set enable_statistics true
+
+rosrun rqt_graph rqt_graph
+
+****************************************************************************************************************************
+ROS topics
+
+liste des topics et infos
+rostopic -h
+
+http://wiki.ros.org/ROS/Tutorials/UnderstandingTopics
+
+****************************************************************************************************************************
+
+pour le faire parler
+
+rostopic pub -1 /speech std_msgs/String 'message_a_dire'
+
+****************************************************************************************************************************
+mouvements de tete
+
+rotation G/D
+rostopic pub -1 /joint_angles nao_msgs/JointAnglesWithSpeed '{joint_names: [HeadPitch], joint_angles: [-0.3], speed: 0.2}'
+
+rotation H/B
+rostopic pub -1 /joint_angles nao_msgs/JointAnglesWithSpeed '{joint_names: [HeadYaw], joint_angles: [-0.3], speed: 0.2}'
+
+rotation epaule Av/Ar
+rostopic pub -1 /joint_angles nao_msgs/JointAnglesWithSpeed '{joint_names: [LElbowRoll], joint_angles: [-0.3], speed: 0.2}'
+
+RAZ
+rostopic pub -1 /joint_angles nao_msgs/JointAnglesWithSpeed '{joint_names: [HeadPitch], joint_angles: [0.0], speed: 0.2}'
+rostopic pub -1 /joint_angles nao_msgs/JointAnglesWithSpeed '{joint_names: [HeadYaw], joint_angles: [0.0], speed: 0.2}'
+rostopic pub -1 /joint_angles nao_msgs/JointAnglesWithSpeed '{joint_names: [LElbowRoll], joint_angles: [0.0], speed: 0.2}'
+
+http://wiki.ros.org/nao_driver
+
+
+****************************************************************************************************************************
+
+preparer package
+
+roscd nom_du_package (ex: roscd nao_package)
+chmod +x nom_du_script.py
+cd ..
+make
+cd
+rosrun nom_du_package nom_du_script.py
+
+
+****************************************************************************************************************************
+stiffness
+rosservice call /body_stiffness/enable "{}"
+
+rosservice call /body_stiffness/disable "{}"
